@@ -7,6 +7,11 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		8740A88C223C2547004B686C /* BaseballCardCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8740A88B223C2547004B686C /* BaseballCardCell.swift */; };
+		8740A88E223C3062004B686C /* Extensions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8740A88D223C3062004B686C /* Extensions.swift */; };
+		8740A8932241BD4C004B686C /* MenuBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8740A8922241BD4C004B686C /* MenuBar.swift */; };
+		8740A8952241C634004B686C /* MenuCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8740A8942241C634004B686C /* MenuCell.swift */; };
+		8740A8972241C79C004B686C /* BaseCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8740A8962241C79C004B686C /* BaseCell.swift */; };
 		879F8F61223C09A200AD050C /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 879F8F60223C09A100AD050C /* AppDelegate.swift */; };
 		879F8F63223C09A200AD050C /* HomeController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 879F8F62223C09A200AD050C /* HomeController.swift */; };
 		879F8F66223C09A200AD050C /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 879F8F64223C09A200AD050C /* Main.storyboard */; };
@@ -15,6 +20,11 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		8740A88B223C2547004B686C /* BaseballCardCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseballCardCell.swift; sourceTree = "<group>"; };
+		8740A88D223C3062004B686C /* Extensions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Extensions.swift; sourceTree = "<group>"; };
+		8740A8922241BD4C004B686C /* MenuBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBar.swift; sourceTree = "<group>"; };
+		8740A8942241C634004B686C /* MenuCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuCell.swift; sourceTree = "<group>"; };
+		8740A8962241C79C004B686C /* BaseCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaseCell.swift; sourceTree = "<group>"; };
 		879F8F5D223C09A100AD050C /* MLB Game Situation.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "MLB Game Situation.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		879F8F60223C09A100AD050C /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		879F8F62223C09A200AD050C /* HomeController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeController.swift; sourceTree = "<group>"; };
@@ -35,6 +45,33 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		8740A88F223D6E40004B686C /* Helpers */ = {
+			isa = PBXGroup;
+			children = (
+				8740A88D223C3062004B686C /* Extensions.swift */,
+			);
+			path = Helpers;
+			sourceTree = "<group>";
+		};
+		8740A890223D6EA9004B686C /* View */ = {
+			isa = PBXGroup;
+			children = (
+				8740A88B223C2547004B686C /* BaseballCardCell.swift */,
+				8740A8922241BD4C004B686C /* MenuBar.swift */,
+				8740A8942241C634004B686C /* MenuCell.swift */,
+				8740A8962241C79C004B686C /* BaseCell.swift */,
+			);
+			path = View;
+			sourceTree = "<group>";
+		};
+		8740A891223D6EDE004B686C /* Controller */ = {
+			isa = PBXGroup;
+			children = (
+				879F8F62223C09A200AD050C /* HomeController.swift */,
+			);
+			path = Controller;
+			sourceTree = "<group>";
+		};
 		879F8F54223C09A100AD050C = {
 			isa = PBXGroup;
 			children = (
@@ -54,9 +91,11 @@
 		879F8F5F223C09A100AD050C /* MLB Game Situation */ = {
 			isa = PBXGroup;
 			children = (
-				879F8F60223C09A100AD050C /* AppDelegate.swift */,
-				879F8F62223C09A200AD050C /* HomeController.swift */,
+				8740A891223D6EDE004B686C /* Controller */,
+				8740A890223D6EA9004B686C /* View */,
+				8740A88F223D6E40004B686C /* Helpers */,
 				879F8F64223C09A200AD050C /* Main.storyboard */,
+				879F8F60223C09A100AD050C /* AppDelegate.swift */,
 				879F8F67223C09A400AD050C /* Assets.xcassets */,
 				879F8F69223C09A400AD050C /* LaunchScreen.storyboard */,
 				879F8F6C223C09A400AD050C /* Info.plist */,
@@ -137,6 +176,11 @@
 			files = (
 				879F8F63223C09A200AD050C /* HomeController.swift in Sources */,
 				879F8F61223C09A200AD050C /* AppDelegate.swift in Sources */,
+				8740A8952241C634004B686C /* MenuCell.swift in Sources */,
+				8740A88C223C2547004B686C /* BaseballCardCell.swift in Sources */,
+				8740A8972241C79C004B686C /* BaseCell.swift in Sources */,
+				8740A88E223C3062004B686C /* Extensions.swift in Sources */,
+				8740A8932241BD4C004B686C /* MenuBar.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
