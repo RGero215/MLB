@@ -10,7 +10,11 @@ import UIKit
 
 class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
     
-    
+//    var games: [Games] = {
+//        var test = Games()
+//        test.title = "Oriles vs Oakland"
+//        return [test]
+//    }()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -30,6 +34,24 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
         collectionView.scrollIndicatorInsets = UIEdgeInsets(top: 50, left: 0, bottom: 0, right: 0)
         
         setupMenuBar()
+        
+        setupNavBarButtons()
+    }
+    
+    func setupNavBarButtons(){
+        let searchImage = UIImage(named: "search_icon")?.withRenderingMode(.alwaysOriginal)
+        let moreImage = UIImage(named: "nav_more_icon")?.withRenderingMode(.alwaysOriginal)
+        let searchBarButtonItem = UIBarButtonItem(image: searchImage, style: .plain, target: self, action: #selector(handleSearch))
+        let moreButton = UIBarButtonItem(image: moreImage, style: .plain, target: self, action: #selector(handleMore))
+        navigationItem.rightBarButtonItems = [searchBarButtonItem]
+    }
+    
+    @objc func handleSearch(){
+        
+    }
+    
+    @objc func handleMore(){
+        
     }
     
     let menuBar: MenuBar = {
