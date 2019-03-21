@@ -15,7 +15,7 @@ class BaseballCardCell: BaseCell {
     let baseballCardView: UIImageView = {
         let imageView = UIImageView()
         imageView.image = UIImage(named: "rising2dtop stadium")
-        imageView.contentMode = .scaleAspectFill
+        imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
         return imageView
     }()
@@ -34,7 +34,7 @@ class BaseballCardCell: BaseCell {
         return view
     }()
     
-    let titleLabel: UILabel = {
+    var titleLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
         label.text = "Title Text - Placeholder"

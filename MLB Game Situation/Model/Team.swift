@@ -1,5 +1,5 @@
 //
-//  Games.swift
+//  Team.swift
 //  MLB Game Situation
 //
 //  Created by Ramon Geronimo on 3/20/19.
@@ -8,11 +8,10 @@
 
 import UIKit
 
-struct Game: Codable {
+struct Team: Codable {
+    let name: String
+    let market: String
+    let abbr: String
     let id: String
-    let status: String
-    let home_team: String
-    let away_team: String
-    let double_header: Bool
     
 }

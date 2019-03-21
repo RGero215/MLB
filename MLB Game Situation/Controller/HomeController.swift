@@ -10,11 +10,9 @@ import UIKit
 
 class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
     
-//    var games: [Games] = {
-//        var test = Games()
-//        test.title = "Oriles vs Oakland"
-//        return [test]
-//    }()
+    var games: [[String : Game]] = []
+    let client = MLBApiServiceGames(year: 2019, month: 03, day: 10)
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -36,6 +34,17 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
         setupMenuBar()
         
         setupNavBarButtons()
+        
+        client.fetchSources()
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(reloadCollectionview), name: NSNotification.Name(rawValue: "reloadCollectionView"), object: nil)
+
+    }
+    
+    @objc func reloadCollectionview(){
+        print("Reloading.....")
+        self.games = client.returnSources()
+        self.collectionView.reloadData()
     }
     
     func setupNavBarButtons(){
@@ -43,7 +52,7 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
         let moreImage = UIImage(named: "nav_more_icon")?.withRenderingMode(.alwaysOriginal)
         let searchBarButtonItem = UIBarButtonItem(image: searchImage, style: .plain, target: self, action: #selector(handleSearch))
         let moreButton = UIBarButtonItem(image: moreImage, style: .plain, target: self, action: #selector(handleMore))
-        navigationItem.rightBarButtonItems = [searchBarButtonItem]
+        navigationItem.rightBarButtonItems = [searchBarButtonItem, moreButton]
     }
     
     @objc func handleSearch(){
@@ -70,21 +79,74 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
     }
     
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 5
+        return games.count
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cellID", for: indexPath)
-        
+        let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cellID", for: indexPath) as! BaseballCardCell
+
+        cell.titleLabel.text = "\((games[indexPath.row]["game"]?.home.name)!) vs \((games[indexPath.row]["game"]?.away.name)!)"
+        cell.subtitleTextView.text = "Status: \(String(describing: (games[indexPath.row]["game"]?.status)!)) – Double Header: \(String(describing: (games[indexPath.row]["game"]?.double_header)!))"
+        cell.baseballCardView.image = UIImage(named: stadium(name: (games[indexPath.row]["game"]?.home.name)!))
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return CGSize(width: view.frame.width, height: view.frame.height - 100)
+        return CGSize(width: view.frame.width, height: 500)
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
         return 0
     }
+    
+    override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
+        
+        
+    }
+    
+    func stadium(name: String) -> String {
+        if name == "Angels"{
+            return "ANGELS"
+        } else if name == "Cubs"{
+            return "WRINGLEY"
+        } else if name == "Rangers" {
+            return "ARLINGTON1"
+        } else if name == "Cardinals" {
+            return "BUSCH"
+        } else if name == "Orioles" {
+            return "CAMDEN"
+        } else if name == "Mets" {
+            return "CITI"
+        } else if name == "Athletics" {
+            return "COLISEUM"
+        } else if name == "Tigers" {
+            return "COMERICA PARK"
+        } else if name == "Red Sox" {
+            return "FENWAY"
+        } else if name == "Reds" {
+            return "GREAT AMERICA"
+        } else if name == "Royals" {
+            return "KAUFFMAN"
+        } else if name == "Astros" {
+            return "MINUTE MAID"
+        } else if name == "Nationals" {
+            return "NATIONALS"
+        } else if name == "Pirates" {
+            return "PNC"
+        } else if name == "Blue Jays" {
+            return "ROGERS"
+        } else if name == "Mariners" {
+            return "SAFECO MOD"
+        } else if name == "Twins" {
+            return "TARGET"
+        } else if name == "Rays" {
+            return "TROPICANA"
+        } else if name == "White Sox" {
+            return "US CELLULAR2"
+        } else {
+            return "Rising To The Top - Logo"
+        }
+    }
+    
 }
 
