@@ -12,12 +12,13 @@ struct Home: Codable {
     let name: String
     let market: String
     let id: String
+    let abbr: String?
     let runs: String?
     let hits: String?
     let errors: String?
     
     enum CodingKeys: String, CodingKey {
-        case name, market, id, runs, hits, errors
+        case name, market, id, runs, hits, errors, abbr
     }
     
     init(from decoder: Decoder) throws {
@@ -25,6 +26,11 @@ struct Home: Codable {
         self.name = try container.decode(String.self, forKey: .name)
         self.market = try container.decode(String.self, forKey: .market)
         self.id = try container.decode(String.self, forKey: .id)
+        if (try? container.decode(String.self, forKey: .abbr)) != nil {
+            self.abbr = try container.decode(String.self, forKey: .abbr)
+        } else {
+            self.abbr = ""
+        }
         
         if let runs = try? container.decode(Int.self, forKey: .runs) {
             self.runs = String(runs)

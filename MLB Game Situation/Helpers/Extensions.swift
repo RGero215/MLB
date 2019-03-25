@@ -50,3 +50,49 @@ extension String
     }
 }
 
+extension HomeController {
+    func stadium(name: String) -> String {
+        if name == "Angels"{
+            return "ANGELS"
+        } else if name == "Cubs"{
+            return "WRINGLEY"
+        } else if name == "Rangers" {
+            return "ARLINGTON1"
+        } else if name == "Cardinals" {
+            return "BUSCH"
+        } else if name == "Orioles" {
+            return "CAMDEN"
+        } else if name == "Mets" {
+            return "CITI"
+        } else if name == "Athletics" {
+            return "COLISEUM"
+        } else if name == "Tigers" {
+            return "COMERICA PARK"
+        } else if name == "Red Sox" {
+            return "FENWAY"
+        } else if name == "Reds" {
+            return "GREAT AMERICA"
+        } else if name == "Royals" {
+            return "KAUFFMAN"
+        } else if name == "Astros" {
+            return "MINUTE MAID"
+        } else if name == "Nationals" {
+            return "NATIONALS"
+        } else if name == "Pirates" {
+            return "PNC"
+        } else if name == "Blue Jays" {
+            return "ROGERS"
+        } else if name == "Mariners" {
+            return "SAFECO MOD"
+        } else if name == "Twins" {
+            return "TARGET"
+        } else if name == "Rays" {
+            return "TROPICANA"
+        } else if name == "White Sox" {
+            return "US CELLULAR2"
+        } else {
+            return "Rising To The Top - Logo"
+        }
+    }
+}
+

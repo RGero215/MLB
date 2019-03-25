@@ -71,6 +71,7 @@ class MLBApiServiceGame {
             
             DispatchQueue.main.async {
                 self.sources = decodedResponseObject
+                NotificationCenter.default.post(name: NSNotification.Name(rawValue: "playByPlay"), object: nil)
                 print(decodedResponseObject)
                 
             }

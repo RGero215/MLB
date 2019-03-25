@@ -8,10 +8,17 @@
 
 import UIKit
 
-class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLayout {
+protocol HomeControllerDelegate: class {
+    func loadPlays()
+}
+
+class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLayout, HomeControllerDelegate {
     
     var games: [[String : Game]] = []
+    var game: MLBApiServiceGame?
+    var pitchByPitch: PitchByPitch?
     let client = MLBApiServiceGames(year: 2019, month: 03, day: 10)
+    
     
 
     override func viewDidLoad() {
@@ -38,6 +45,9 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
         client.fetchSources()
         
         NotificationCenter.default.addObserver(self, selector: #selector(reloadCollectionview), name: NSNotification.Name(rawValue: "reloadCollectionView"), object: nil)
+        
+        cardLauncher.delegate = self
+        
 
     }
     
@@ -47,12 +57,22 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
         self.collectionView.reloadData()
     }
     
+    @objc func loadPlayByPlay(){
+        print("loading.....")
+        self.pitchByPitch = self.game?.returnSources()
+        cardLauncher.showCard()
+
+    }
+    
+    
+    
+    
     func setupNavBarButtons(){
         let searchImage = UIImage(named: "search_icon")?.withRenderingMode(.alwaysOriginal)
         let moreImage = UIImage(named: "nav_more_icon")?.withRenderingMode(.alwaysOriginal)
         let searchBarButtonItem = UIBarButtonItem(image: searchImage, style: .plain, target: self, action: #selector(handleSearch))
         let moreButton = UIBarButtonItem(image: moreImage, style: .plain, target: self, action: #selector(handleMore))
-        navigationItem.rightBarButtonItems = [searchBarButtonItem, moreButton]
+        navigationItem.rightBarButtonItems = [moreButton, searchBarButtonItem]
     }
     
     @objc func handleSearch(){
@@ -84,10 +104,13 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cellID", for: indexPath) as! BaseballCardCell
-
-        cell.titleLabel.text = "\((games[indexPath.row]["game"]?.home.name)!) vs \((games[indexPath.row]["game"]?.away.name)!)"
-        cell.subtitleTextView.text = "Status: \(String(describing: (games[indexPath.row]["game"]?.status)!)) – Double Header: \(String(describing: (games[indexPath.row]["game"]?.double_header)!))"
-        cell.baseballCardView.image = UIImage(named: stadium(name: (games[indexPath.row]["game"]?.home.name)!))
+        guard let home = games[indexPath.row]["game"]?.home.name else {return cell}
+        guard let away = games[indexPath.row]["game"]?.away.name else {return cell}
+        guard let status = games[indexPath.row]["game"]?.status else {return cell}
+        guard let doubleHeader = games[indexPath.row]["game"]?.double_header else {return cell}
+        cell.titleLabel.text = "\(home) vs \(away)"
+        cell.subtitleTextView.text = "Status: \(status) – Double Header: \(doubleHeader)"
+        cell.baseballCardView.image = UIImage(named: stadium(name: home))
         return cell
     }
     
@@ -99,53 +122,30 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
         return 0
     }
     
+    let cardLauncher = CardLauncher()
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         
+//        cardLauncher.showCard()
+        guard let id = games[indexPath.row]["game"]?.id else {return}
+        game = MLBApiServiceGame(id: id)
+        game?.fetchSources()
+        NotificationCenter.default.addObserver(self, selector: #selector(loadPlayByPlay), name: NSNotification.Name(rawValue: "playByPlay"), object: nil)
         
     }
     
-    func stadium(name: String) -> String {
-        if name == "Angels"{
-            return "ANGELS"
-        } else if name == "Cubs"{
-            return "WRINGLEY"
-        } else if name == "Rangers" {
-            return "ARLINGTON1"
-        } else if name == "Cardinals" {
-            return "BUSCH"
-        } else if name == "Orioles" {
-            return "CAMDEN"
-        } else if name == "Mets" {
-            return "CITI"
-        } else if name == "Athletics" {
-            return "COLISEUM"
-        } else if name == "Tigers" {
-            return "COMERICA PARK"
-        } else if name == "Red Sox" {
-            return "FENWAY"
-        } else if name == "Reds" {
-            return "GREAT AMERICA"
-        } else if name == "Royals" {
-            return "KAUFFMAN"
-        } else if name == "Astros" {
-            return "MINUTE MAID"
-        } else if name == "Nationals" {
-            return "NATIONALS"
-        } else if name == "Pirates" {
-            return "PNC"
-        } else if name == "Blue Jays" {
-            return "ROGERS"
-        } else if name == "Mariners" {
-            return "SAFECO MOD"
-        } else if name == "Twins" {
-            return "TARGET"
-        } else if name == "Rays" {
-            return "TROPICANA"
-        } else if name == "White Sox" {
-            return "US CELLULAR2"
-        } else {
-            return "Rising To The Top - Logo"
-        }
+    @objc func loadPlays() {
+        print("""
+
+
+                
+                    Working Fine!
+
+
+
+            
+            """)
+        cardLauncher.pitchByPitch = self.pitchByPitch
+        
     }
     
 }
