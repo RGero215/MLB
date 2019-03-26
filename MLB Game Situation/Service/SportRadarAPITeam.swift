@@ -20,7 +20,7 @@ class MLBApiServiceTeam {
     
     init(id: String) {
         self.id = id
-        self.sourcesEndpoint = "/mlb/trial/v6.5/en/teams/\(id)/profile.json?api_key=dtv2c2vznqkt65vkc72y98fh"
+        self.sourcesEndpoint = "/mlb/trial/v6.5/en/teams/\(id)/profile.json?api_key=7jgd82yes4tvj35yrk6j2vff"
     }
     
     

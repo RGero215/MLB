@@ -51,6 +51,29 @@ extension String
 }
 
 extension HomeController {
+    
+    
+    
+    func startActivityIndicator() {
+        
+        
+    }
+    
+    func stopActivityIndicator() {
+        let activityIndicatorView: UIActivityIndicatorView = {
+            let aiv = UIActivityIndicatorView(style: .gray)
+            aiv.translatesAutoresizingMaskIntoConstraints = false
+            aiv.stopAnimating()
+            return aiv
+        }()
+        
+        view.addSubview(activityIndicatorView)
+        
+        activityIndicatorView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        activityIndicatorView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        
+    }
+    
     func stadium(name: String) -> String {
         if name == "Angels"{
             return "ANGELS"
@@ -94,5 +117,160 @@ extension HomeController {
             return "Rising To The Top - Logo"
         }
     }
+}
+
+extension CardLauncher {
+    // HOME
+    func homeColor(teamName: String) -> UIColor {
+        var color = UIColor()
+        if teamName == "Orioles" {
+            color = .orange
+            return color
+        } else if teamName == "Red Sox" {
+            color = .red
+            return color
+        } else if teamName == "White Sox" {
+            color = .black
+            return color
+        } else if teamName == "Indians" {
+            color = .red
+            return color
+        } else if teamName == "Tigers" {
+            color = .blue
+            return color
+        } else if teamName == "Astros" {
+            color = .orange
+            return color
+        } else if teamName == "City Royals" {
+            color = .blue
+            return color
+        } else if teamName == "Twins" {
+            color = .red
+            return color
+        } else if teamName == "York Yankees" {
+            color = .red
+            return color
+        } else if teamName == "Athletics" {
+            color = .green
+            return color
+        } else if teamName == "Mariners" {
+            color = .blue
+            return color
+        } else if teamName == "Bay Rays" {
+            color = .blue
+            return color
+        } else if teamName == "Rangers" {
+            color = .red
+            return color
+        } else if teamName == "Blue Jays" {
+            color = .blue
+            return color
+        }
+        
+        return color
+    }
+    
+    // AWAY
+    func awayColor(teamName: String) -> UIColor {
+        var color = UIColor()
+        if teamName == "Diamondbacks" {
+            color = .red
+            return color
+        } else if teamName == "Braves" {
+            color = .red
+            return color
+        } else if teamName == "Cubs" {
+            color = .red
+            return color
+        } else if teamName == "Reds" {
+            color = .red
+            return color
+        } else if teamName == "Rockies" {
+            color = .black
+            return color
+        } else if teamName == "Angeles Dodgers" {
+            color = .blue
+            return color
+        } else if teamName == "Marlins" {
+            color = .black
+            return color
+        } else if teamName == "Brewers" {
+            color = .blue
+            return color
+        } else if teamName == "York Mets" {
+            color = .blue
+            return color
+        } else if teamName == "Phillies" {
+            color = .red
+            return color
+        } else if teamName == "Pirates" {
+            color = .yellow
+            return color
+        } else if teamName == "Diego Padres" {
+            color = .blue
+            return color
+        } else if teamName == "Francisco Giants" {
+            color = .orange
+            return color
+        } else if teamName == "Louis Cardinals" {
+            color = .red
+            return color
+        } else if teamName == "Nationals" {
+            color = .red
+            return color
+        }
+        return color
+    }
+    
+    // BASES
+    func bases(runner: String) -> UIImage {
+        
+        var image = (UIImage(named: "empty_bases"))
+        
+        if runner == "man_on_first" {
+            image = (UIImage(named: runner))
+            return image!
+        } else if runner == "man_on_second" {
+            image = (UIImage(named: runner))
+            return image!
+        } else if runner == "man_on_third" {
+            image = (UIImage(named: runner))
+            return image!
+        } else if runner == "second_and_third" {
+            image = (UIImage(named: runner))
+            return image!
+        } else if runner == "first_and_third" {
+            image = (UIImage(named: runner))
+            return image!
+        } else if runner == "third_and_second" {
+            image = (UIImage(named: runner))
+            return image!
+        } else if runner == "bases_loaded" {
+            image = (UIImage(named: runner))
+            return image!
+        }
+        
+        return image!
+    }
+    
+    // OUTS
+    func outs(manyOuts: String) -> UIImage {
+        
+        var image = (UIImage(named: "no_outs"))
+        
+        if manyOuts == "one_out" {
+            image = (UIImage(named: manyOuts))
+            return image!
+        } else if manyOuts == "two_outs" {
+            image = (UIImage(named: manyOuts))
+            return image!
+        } else if manyOuts == "three_outs" {
+            image = (UIImage(named: manyOuts))
+            return image!
+        }
+        
+        return image!
+    }
+
 }
 

@@ -10,38 +10,61 @@ import UIKit
 
 
 
-class CardLauncher: NSObject {
+class CardLauncher: UIViewController {
     
     var awayAbbr = ""
     var homeAbbr = ""
     var awayRuns = 0
     var homeRuns = 0
     var innings: [Inning] = []
+    var inningCount: Int = 0
+    var counts: [Count] = []
+    var count: Count?
+    var hitter: Hitter?
+    var pitchCount: Int = 0
     
+    var currentView: UIView?
     
     var pitchByPitch: PitchByPitch!
     
     weak var delegate: HomeControllerDelegate?
     
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+
+    }
+
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+    
+        showCard()
+    }
     
     func showCard() {
         print("Showing card...")
 //        awayAbbr = (pitchByPitch?.scoring.away.abbr)!
         delegate?.loadPlays()
+        guard let pitchByPitch = pitchByPitch else {return}
         guard let awayAbbr = pitchByPitch.scoring.away.abbr else {return}
         guard let homeAbbr = pitchByPitch.scoring.home.abbr else {return}
 //        guard let awayRuns = pitchByPitch.scoring.away.abbr else {return}
         guard let homeRuns = pitchByPitch.scoring.home.runs else {return}
         
+        self.innings = pitchByPitch.innings
+        
         self.awayAbbr = awayAbbr
         self.homeAbbr = homeAbbr
+        self.homeRuns = Int(homeRuns)!
         
-        print("*************  Connected: \(pitchByPitch.scoring.home.abbr) ************")
+        inning(innings: self.innings, number: 1)
+        pitchCounter(pitchCount: 1)
         
-        guard let keyWindow = UIApplication.shared.keyWindow else {return}
-        let view = UIView(frame: keyWindow.frame)
+//        guard let keyWindow = UIApplication.shared.keyWindow else {return}
+//        let view = UIView(frame: keyWindow.frame)
+        
         view.backgroundColor = UIColor.white
-        view.frame = CGRect(x: keyWindow.frame.width - 10, y: keyWindow.frame.height - 10, width: 10, height: 10)
+//        view.frame = CGRect(x: keyWindow.frame.width - 10, y: keyWindow.frame.height - 10, width: 10, height: 10)
         
         // status bar
         let statusBarBackgroundView = UIView()
@@ -52,26 +75,50 @@ class CardLauncher: NSObject {
         view.addConstraintsWithFormat(format: "V:|[v0(40)]", views: statusBarBackgroundView)
         
         // scoreboard view
-        let scoreboardFrame = CGRect(x: 0, y: 0, width: keyWindow.frame.width, height: 100)
+        let scoreboardFrame = CGRect(x: 0, y: 0, width: view.frame.width, height: 100)
         let scoreboardView = ScoreboardView(frame: scoreboardFrame)
+        
+        // set Scoreboard View
+        setUpScoreboard(scoreboardView: scoreboardView)
         view.addSubview(scoreboardView)
         view.addConstraintsWithFormat(format: "H:|[v0]|", views: scoreboardView)
         view.addConstraintsWithFormat(format: "V:|[v0]-0-[v1(100)]", views: statusBarBackgroundView, scoreboardView)
         
-        setUpScoreboard(scoreboardView: scoreboardView)
+        // Notify dismiss
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(self.dismissView), name: NSNotification.Name(rawValue: "dismissView"), object: nil)
+        
         
         setUpHitter(scoreboardView: scoreboardView, view: view)
         
+//        currentView = removingView(view: view)
         
-        
-        keyWindow.addSubview(view)
-        
-        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
-            view.frame = keyWindow.frame
-        }) { (completedAnimation) in
-            print("completed")
+//        keyWindow.addSubview(view)
+//        view.frame = keyWindow.frame
+//
+//        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
+//            view.frame = keyWindow.frame
+//        }) { (completedAnimation) in
+//            print("completed")
+//
+//        }
+    }
     
+    override func viewWillDisappear(_ animated: Bool) {
+        for subview in self.view.subviews {
+            subview.removeFromSuperview()
         }
+    }
+    
+//    func removingView(view: UIView) -> UIView {
+//        return view
+//    }
+    
+    @objc func dismissView() {
+        print("Dismiss...")
+
+        dismiss(animated: true, completion: nil)
+    
     }
     
     func setUpScoreboard(scoreboardView: UIView){
@@ -119,7 +166,7 @@ class CardLauncher: NSObject {
         let inningLabel: UILabel = {
             let label = UILabel()
             label.translatesAutoresizingMaskIntoConstraints = false
-            label.text = "\u{25B3} 1"
+            label.text = "\u{25B3} \(inningCount)"
             label.textColor = .white
             label.font = UIFont.boldSystemFont(ofSize: 20)
             label.textAlignment = .center
@@ -142,7 +189,8 @@ class CardLauncher: NSObject {
             label.textColor = .white
             label.font = UIFont.boldSystemFont(ofSize: 20)
             label.textAlignment = .center
-            label.text = "1-2"
+            guard let count = self.count else {return label}
+            label.text = "\(count.balls)-\(count.strikes)"
             return label
         }()
         
@@ -207,7 +255,10 @@ class CardLauncher: NSObject {
         let hitterLabel: UILabel = {
             let label = UILabel()
             label.translatesAutoresizingMaskIntoConstraints = false
-            label.text = "#24 Robinson Cano"
+            guard let number = self.hitter?.jersey_number else {return label}
+            guard let firstName = self.hitter?.first_name else {return label}
+            guard let lastName = self.hitter?.last_name else {return label}
+            label.text = "#\(number) \(firstName) \(lastName)"
             label.textColor = .white
             label.backgroundColor = .orange
             label.font = UIFont.boldSystemFont(ofSize: 20)
@@ -254,24 +305,29 @@ class CardLauncher: NSObject {
         setupPitchesButtons(view: view, stadium: stadiumView)
     }
     
-    lazy var fastball: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Fastball", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = .blue
-        button.addTarget(self, action: #selector(handleFastball), for: .touchUpInside)
-        
-        return button
-    }()
+    
     
     func setupPitchesButtons(view: UIView, stadium: UIImageView){
+        
+        let fastball: UIButton = {
+            let button = UIButton(type: .system)
+            button.setTitle("Fastball", for: .normal)
+            button.setTitleColor(.white, for: .normal)
+            button.backgroundColor = .blue
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleFastball), for: .touchUpInside)
+            
+            return button
+        }()
       
         let curveBall: UIButton = {
-            let button = UIButton()
+            let button = UIButton(type: .system)
             button.setTitle("CurveBall", for: .normal)
             button.setTitleColor(.blue, for: .normal)
             button.backgroundColor = .white
             button.layer.borderWidth = 1
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleCurveBall), for: .touchUpInside)
             button.layer.borderColor = UIColor.blue.cgColor
             
             return button
@@ -282,6 +338,8 @@ class CardLauncher: NSObject {
             button.setTitle("Slider", for: .normal)
             button.setTitleColor(.white, for: .normal)
             button.backgroundColor = .blue
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleSlider), for: .touchUpInside)
             
             return button
         }()
@@ -293,6 +351,8 @@ class CardLauncher: NSObject {
             button.backgroundColor = .white
             button.layer.borderWidth = 1
             button.layer.borderColor = UIColor.blue.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleCutter), for: .touchUpInside)
             
             return button
         }()
@@ -302,6 +362,8 @@ class CardLauncher: NSObject {
             button.setTitle("Change Up", for: .normal)
             button.setTitleColor(.white, for: .normal)
             button.backgroundColor = .blue
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleChangeUp), for: .touchUpInside)
             
             return button
         }()
@@ -313,6 +375,8 @@ class CardLauncher: NSObject {
             button.backgroundColor = .white
             button.layer.borderWidth = 1
             button.layer.borderColor = UIColor.blue.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleKnuckleball), for: .touchUpInside)
             
             return button
         }()
@@ -345,6 +409,63 @@ class CardLauncher: NSObject {
     @objc func handleFastball(sender: UIButton) {
         print("Fastball...")
     
+    }
+    
+    @objc func handleCurveBall(sender: UIButton) {
+        print("CurveBall...")
+        
+    }
+    
+    @objc func handleSlider(sender: UIButton) {
+        print("Slider...")
+        
+    }
+    
+    @objc func handleCutter(sender: UIButton) {
+        print("Cutter...")
+        
+    }
+    
+    @objc func handleChangeUp(sender: UIButton) {
+        print("ChangeUp...")
+        
+    }
+    
+    @objc func handleKnuckleball(sender: UIButton) {
+        print("Knuckleball...")
+        
+    }
+    
+    func inning(innings: [Inning], number: Int)  {
+        for inning in innings {
+            if inning.number == 0 {
+                for player in inning.halfs[0].events {
+                    print("#\(player.lineup?.jersey_number) \(player.lineup?.first_name) \(player.lineup?.last_name)")
+                }
+            } else if inning.number == 1 {
+                if inning.halfs[0].events.count > 0 {
+                    self.hitter = inning.halfs[0].events[0].at_bat?.hitter
+                } else {
+                    self.hitter = nil
+                }
+                for at_bat in inning.halfs[0].events {
+                    guard let at_bat_events = at_bat.at_bat?.events else {return}
+                    for at_bat_event in  at_bat_events {
+                        guard let count = at_bat_event.count else {return}
+                        self.inningCount = inning.number
+                        self.counts.append(count)
+                    }
+                }
+            }
+        }
+    }
+    
+    func pitchCounter(pitchCount: Int){
+        for count in counts {
+            if count.pitch_count == pitchCount {
+                self.count = count
+            }
+        }
     }
     
     

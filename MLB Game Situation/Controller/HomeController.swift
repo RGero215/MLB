@@ -23,6 +23,7 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         navigationItem.title = "Home"
         navigationController?.navigationBar.isTranslucent = false
         
@@ -51,6 +52,12 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
 
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+        
+    }
+    
     @objc func reloadCollectionview(){
         print("Reloading.....")
         self.games = client.returnSources()
@@ -59,12 +66,35 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
     
     @objc func loadPlayByPlay(){
         print("loading.....")
+       
         self.pitchByPitch = self.game?.returnSources()
+        self.activityIndicatorView.stopAnimating()
         cardLauncher.showCard()
+        
+        if !cardLauncher.isBeingPresented {
+            // Present your ViewController only if its not present to the user currently.
+            self.present(self.cardLauncher, animated: true)
+        }
+       
+        
+        
+        
 
+      
     }
     
-    
+//    override func viewWillDisappear(_ animated: Bool) {
+//        for subview in self.view.subviews {
+//            subview.removeFromSuperview()
+//        }
+//        view.removeFromSuperview()
+        
+//        var controller = presentingViewController
+//        while let presentingVC = controller?.presentingViewController {
+//            controller = presentingVC
+//        }
+//        controller?.dismiss(animated: true)
+//    }
     
     
     func setupNavBarButtons(){
@@ -103,6 +133,7 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
     }
     
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
+//        let cell = BaseballCardCell()
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "cellID", for: indexPath) as! BaseballCardCell
         guard let home = games[indexPath.row]["game"]?.home.name else {return cell}
         guard let away = games[indexPath.row]["game"]?.away.name else {return cell}
@@ -123,14 +154,34 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
     }
     
     let cardLauncher = CardLauncher()
+    
+    let activityIndicatorView: UIActivityIndicatorView = {
+        let aiv = UIActivityIndicatorView(style: .gray)
+        aiv.translatesAutoresizingMaskIntoConstraints = false
+        aiv.startAnimating()
+        return aiv
+    }()
+    
     override func collectionView(_ collectionView: UICollectionView, didSelectItemAt indexPath: IndexPath) {
         
+        
+        
+        view.addSubview(activityIndicatorView)
+        
+        activityIndicatorView.centerXAnchor.constraint(equalTo: view.centerXAnchor).isActive = true
+        activityIndicatorView.centerYAnchor.constraint(equalTo: view.centerYAnchor).isActive = true
+        
+        activityIndicatorView.startAnimating()
+        
+//        startActivityIndicator()
 //        cardLauncher.showCard()
         guard let id = games[indexPath.row]["game"]?.id else {return}
         game = MLBApiServiceGame(id: id)
         game?.fetchSources()
+        
         NotificationCenter.default.addObserver(self, selector: #selector(loadPlayByPlay), name: NSNotification.Name(rawValue: "playByPlay"), object: nil)
         
+    
     }
     
     @objc func loadPlays() {
@@ -147,6 +198,8 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
         cardLauncher.pitchByPitch = self.pitchByPitch
         
     }
+    
+    
     
 }
 
