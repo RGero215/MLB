@@ -18,7 +18,7 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
     var game: MLBApiServiceGame?
     var pitchByPitch: PitchByPitch?
     let client = MLBApiServiceGames(year: 2019, month: 03, day: 10)
-    
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
     
 
     override func viewDidLoad() {
@@ -54,7 +54,8 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        
+        appDelegate.statusBarBackgroundView.backgroundColor = UIColor.rgb(red: 194, green: 31, blue: 31)
+
         
     }
     
@@ -69,7 +70,6 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
        
         self.pitchByPitch = self.game?.returnSources()
         self.activityIndicatorView.stopAnimating()
-        cardLauncher.showCard()
         
         if !cardLauncher.isBeingPresented {
             // Present your ViewController only if its not present to the user currently.
@@ -82,19 +82,6 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
 
       
     }
-    
-//    override func viewWillDisappear(_ animated: Bool) {
-//        for subview in self.view.subviews {
-//            subview.removeFromSuperview()
-//        }
-//        view.removeFromSuperview()
-        
-//        var controller = presentingViewController
-//        while let presentingVC = controller?.presentingViewController {
-//            controller = presentingVC
-//        }
-//        controller?.dismiss(animated: true)
-//    }
     
     
     func setupNavBarButtons(){

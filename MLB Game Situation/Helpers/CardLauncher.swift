@@ -12,16 +12,29 @@ import UIKit
 
 class CardLauncher: UIViewController {
     
+    var step = Int()
+    var countStep = Int()
+    var runnersImage = ""
+    
     var awayAbbr = ""
     var homeAbbr = ""
+    var homeTeamName = ""
+    var awayTeamName = ""
     var awayRuns = 0
     var homeRuns = 0
     var innings: [Inning] = []
-    var inningCount: Int = 0
+    var inningCount: Int = 1
     var counts: [Count] = []
     var count: Count?
     var hitter: Hitter?
     var pitchCount: Int = 0
+    var topEvents: [Event] = []
+    var atBats: [At_Bat] = []
+    var atBatEvent: [At_Bat_Event] = []
+    
+    
+    var atBatsEvent: [Event]?
+    var onBase: [Runner] = []
     
     var currentView: UIView?
     
@@ -32,12 +45,19 @@ class CardLauncher: UIViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
 
-
+        NotificationCenter.default.addObserver(self, selector: #selector(handleStep), name: NSNotification.Name(rawValue: "step"), object: nil)
+        
+        NotificationCenter.default.addObserver(self, selector: #selector(handleCount), name: NSNotification.Name(rawValue: "countStep"), object: nil)
+        
+    }
+    
+    override var prefersStatusBarHidden: Bool {
+        return true
     }
 
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-    
+        
         showCard()
     }
     
@@ -46,8 +66,15 @@ class CardLauncher: UIViewController {
 //        awayAbbr = (pitchByPitch?.scoring.away.abbr)!
         delegate?.loadPlays()
         guard let pitchByPitch = pitchByPitch else {return}
+        
         guard let awayAbbr = pitchByPitch.scoring.away.abbr else {return}
         guard let homeAbbr = pitchByPitch.scoring.home.abbr else {return}
+        
+        awayTeamName = pitchByPitch.scoring.away.name
+        homeTeamName = pitchByPitch.scoring.home.name
+        
+        
+        
 //        guard let awayRuns = pitchByPitch.scoring.away.abbr else {return}
         guard let homeRuns = pitchByPitch.scoring.home.runs else {return}
         
@@ -57,10 +84,15 @@ class CardLauncher: UIViewController {
         self.homeAbbr = homeAbbr
         self.homeRuns = Int(homeRuns)!
         
-        inning(innings: self.innings, number: 1)
+        inning(innings: self.innings, number: inningCount)
         pitchCounter(pitchCount: 1)
+        manOnBases()
+        
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        appDelegate.statusBarBackgroundView.backgroundColor = .black
         
 //        guard let keyWindow = UIApplication.shared.keyWindow else {return}
+//        keyWindow.window.
 //        let view = UIView(frame: keyWindow.frame)
         
         view.backgroundColor = UIColor.white
@@ -91,17 +123,7 @@ class CardLauncher: UIViewController {
         
         setUpHitter(scoreboardView: scoreboardView, view: view)
         
-//        currentView = removingView(view: view)
-        
-//        keyWindow.addSubview(view)
-//        view.frame = keyWindow.frame
-//
-//        UIView.animate(withDuration: 0.5, delay: 0, usingSpringWithDamping: 1, initialSpringVelocity: 1, options: .curveEaseOut, animations: {
-//            view.frame = keyWindow.frame
-//        }) { (completedAnimation) in
-//            print("completed")
-//
-//        }
+
     }
     
     override func viewWillDisappear(_ animated: Bool) {
@@ -110,48 +132,136 @@ class CardLauncher: UIViewController {
         }
     }
     
-//    func removingView(view: UIView) -> UIView {
-//        return view
-//    }
     
     @objc func dismissView() {
         print("Dismiss...")
 
-        dismiss(animated: true, completion: nil)
+        dismiss(animated: true) {
+            self.awayRuns = 0
+            self.inningCount = 1
+            self.step = 0
+            self.countStep = 0
+            self.innings = []
+            self.counts = []
+            self.onBase = []
+            self.inning(innings: self.innings, number: self.inningCount)
+            self.diamondView.image = UIImage(named: "empty_bases")
+            self.outsView.image = UIImage(named: "no_out")
+            self.countLabel.text = "\(0)-\(0)"
+            self.awayLabel.text = "\(self.awayAbbr): \(self.awayRuns)"
+            self.inningLabel.text = "\u{25B3} \(self.inningCount)"
+            self.atBatEvent = []
+            self.atBats = []
+            self.topEvents = []
+            
+            print("""
+                
+                
+                
+                AT BAT EVENT Dismiss: \(self.atBatEvent.count)
+                
+                
+                
+                """)
+            
+        }
     
     }
     
+    lazy var diamondView: UIImageView = {
+        let imageView = UIImageView()
+        imageView.image = bases(runner: runnersImage)
+        imageView.contentMode = .scaleAspectFit
+        imageView.clipsToBounds = true
+        return imageView
+    }()
+    
+    // Away
+    lazy var awayLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "\(awayAbbr): \(awayRuns)"
+        label.textColor = .white
+        label.backgroundColor = awayColor(teamName: awayTeamName)
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    lazy var countLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = .white
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.textAlignment = .center
+        label.text = "\(0)-\(0)"
+        return label
+    }()
+    
+    lazy var outsView: UIImageView = {
+        let imageView = UIImageView()
+        guard let count = self.count else {return imageView}
+        imageView.image = UIImage(named: "no_outs")
+        imageView.contentMode = .scaleAspectFit
+        imageView.clipsToBounds = true
+        return imageView
+    }()
+    
+    lazy var inningLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "\u{25B3} \(inningCount)"
+        label.textColor = .white
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.textAlignment = .center
+        return label
+    }()
+    
     func setUpScoreboard(scoreboardView: UIView){
-        // Away
-        let awayLabel: UILabel = {
-            let label = UILabel()
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.text = "\(awayAbbr): \(awayRuns)"
-            label.textColor = .white
-            label.backgroundColor = .orange
-            label.font = UIFont.boldSystemFont(ofSize: 20)
-            label.textAlignment = .center
-            return label
-        }()
+        awayLabel.text = "\(awayAbbr): \(awayRuns)"
+        awayLabel.backgroundColor = awayColor(teamName: awayTeamName)
+        print("""
+            
+            
+
+            AT BAT EVENT SET UP: \(atBatEvent.count)
+            
+            
+            
+            """)
+        if self.innings[1].halfs[0].events.count > 0 {
+            if let number = atBatEvent[countStep].hitter?.jersey_number, let firstName = atBatEvent[countStep].hitter?.first_name, let lastName = atBatEvent[countStep].hitter?.last_name {
+                hitterLabel.text = "#\(number) \(firstName) \(lastName)"
+            } else {
+                guard let firstName = atBatEvent[countStep].hitter?.first_name else  {return}
+                guard let lastName = atBatEvent[countStep].hitter?.last_name else {return}
+                hitterLabel.text = "\(firstName) \(lastName)"
+            }
+            
+        } else {
+            self.hitter = Hitter(preferred_name: "", first_name: "NO", last_name: "DATA", jersey_number: "0", id: "00000")
+            guard let number = hitter?.jersey_number else {return}
+            guard let firstName = hitter?.first_name else {return}
+            guard let lastName = hitter?.last_name else {return}
+            
+            hitterLabel.text = "#\(number) \(firstName) \(lastName)"
+        }
+        
+        
+        hitterLabel.backgroundColor = awayColor(teamName: awayTeamName)
         
         let homeLabel: UILabel = {
             let label = UILabel()
             label.translatesAutoresizingMaskIntoConstraints = false
             label.text = "\(homeAbbr): \(homeRuns)"
             label.textColor = .white
-            label.backgroundColor = .blue
+            label.backgroundColor = homeColor(teamName: homeTeamName)
             label.font = UIFont.boldSystemFont(ofSize: 20)
             label.textAlignment = .center
             return label
         }()
         
-        let diamondView: UIImageView = {
-            let imageView = UIImageView()
-            imageView.image = UIImage(named: "diamond")
-            imageView.contentMode = .scaleAspectFit
-            imageView.clipsToBounds = true
-            return imageView
-        }()
+        
         
         let inningTitleLabel: UILabel = {
             let label = UILabel()
@@ -163,15 +273,7 @@ class CardLauncher: UIViewController {
             return label
         }()
         
-        let inningLabel: UILabel = {
-            let label = UILabel()
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.text = "\u{25B3} \(inningCount)"
-            label.textColor = .white
-            label.font = UIFont.boldSystemFont(ofSize: 20)
-            label.textAlignment = .center
-            return label
-        }()
+        
         
         let countTitleLabel: UILabel = {
             let label = UILabel()
@@ -183,16 +285,7 @@ class CardLauncher: UIViewController {
             return label
         }()
         
-        let countLabel: UILabel = {
-            let label = UILabel()
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.textColor = .white
-            label.font = UIFont.boldSystemFont(ofSize: 20)
-            label.textAlignment = .center
-            guard let count = self.count else {return label}
-            label.text = "\(count.balls)-\(count.strikes)"
-            return label
-        }()
+        
         
         let outsTitleLabel: UILabel = {
             let label = UILabel()
@@ -204,13 +297,7 @@ class CardLauncher: UIViewController {
             return label
         }()
         
-        let outsView: UIImageView = {
-            let imageView = UIImageView()
-            imageView.image = UIImage(named: "outs")
-            imageView.contentMode = .scaleAspectFit
-            imageView.clipsToBounds = true
-            return imageView
-        }()
+        
         
         scoreboardView.addSubview(awayLabel)
         scoreboardView.addConstraintsWithFormat(format: "H:|[v0(100)]", views: awayLabel)
@@ -251,31 +338,36 @@ class CardLauncher: UIViewController {
         
     }
     
-    func setUpHitter(scoreboardView: UIView, view: UIView) {
-        let hitterLabel: UILabel = {
-            let label = UILabel()
-            label.translatesAutoresizingMaskIntoConstraints = false
-            guard let number = self.hitter?.jersey_number else {return label}
-            guard let firstName = self.hitter?.first_name else {return label}
-            guard let lastName = self.hitter?.last_name else {return label}
+    lazy var hitterLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.textColor = .white
+        label.backgroundColor = awayColor(teamName: awayTeamName)
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.textAlignment = .center
+        if let number = atBatEvent[countStep].hitter?.jersey_number, let firstName = atBatEvent[countStep].hitter?.first_name, let lastName = atBatEvent[countStep].hitter?.last_name {
             label.text = "#\(number) \(firstName) \(lastName)"
-            label.textColor = .white
-            label.backgroundColor = .orange
-            label.font = UIFont.boldSystemFont(ofSize: 20)
-            label.textAlignment = .center
-            return label
-        }()
+        } else {
+            guard let firstName = atBatEvent[countStep].hitter?.first_name else  {return label}
+            guard let lastName = atBatEvent[countStep].hitter?.last_name else {return label}
+            label.text = "\(firstName) \(lastName)"
+        }
+        return label
+    }()
+    
+    lazy var hittingPositionLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "1"
+        label.textColor = .white
+        label.backgroundColor = .black
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    func setUpHitter(scoreboardView: UIView, view: UIView) {
         
-        let hittingPositionLabel: UILabel = {
-            let label = UILabel()
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.text = "1"
-            label.textColor = .white
-            label.backgroundColor = .black
-            label.font = UIFont.boldSystemFont(ofSize: 20)
-            label.textAlignment = .center
-            return label
-        }()
         
         scoreboardView.addSubview(hittingPositionLabel)
         scoreboardView.addConstraintsWithFormat(format: "V:[v0]-0-[v1(50)]", views: scoreboardView, hittingPositionLabel)
@@ -313,7 +405,7 @@ class CardLauncher: UIViewController {
             let button = UIButton(type: .system)
             button.setTitle("Fastball", for: .normal)
             button.setTitleColor(.white, for: .normal)
-            button.backgroundColor = .blue
+            button.backgroundColor = homeColor(teamName: homeTeamName)
             button.titleLabel?.font = .systemFont(ofSize: 20)
             button.addTarget(self, action: #selector(handleFastball), for: .touchUpInside)
             
@@ -323,7 +415,7 @@ class CardLauncher: UIViewController {
         let curveBall: UIButton = {
             let button = UIButton(type: .system)
             button.setTitle("CurveBall", for: .normal)
-            button.setTitleColor(.blue, for: .normal)
+            button.setTitleColor(homeColor(teamName: homeTeamName), for: .normal)
             button.backgroundColor = .white
             button.layer.borderWidth = 1
             button.titleLabel?.font = .systemFont(ofSize: 20)
@@ -337,7 +429,7 @@ class CardLauncher: UIViewController {
             let button = UIButton()
             button.setTitle("Slider", for: .normal)
             button.setTitleColor(.white, for: .normal)
-            button.backgroundColor = .blue
+            button.backgroundColor = homeColor(teamName: homeTeamName)
             button.titleLabel?.font = .systemFont(ofSize: 20)
             button.addTarget(self, action: #selector(handleSlider), for: .touchUpInside)
             
@@ -347,7 +439,7 @@ class CardLauncher: UIViewController {
         let cutter: UIButton = {
             let button = UIButton()
             button.setTitle("Cutter", for: .normal)
-            button.setTitleColor(.blue, for: .normal)
+            button.setTitleColor(homeColor(teamName: homeTeamName), for: .normal)
             button.backgroundColor = .white
             button.layer.borderWidth = 1
             button.layer.borderColor = UIColor.blue.cgColor
@@ -361,7 +453,7 @@ class CardLauncher: UIViewController {
             let button = UIButton()
             button.setTitle("Change Up", for: .normal)
             button.setTitleColor(.white, for: .normal)
-            button.backgroundColor = .blue
+            button.backgroundColor = homeColor(teamName: homeTeamName)
             button.titleLabel?.font = .systemFont(ofSize: 20)
             button.addTarget(self, action: #selector(handleChangeUp), for: .touchUpInside)
             
@@ -371,7 +463,7 @@ class CardLauncher: UIViewController {
         let knuckleBall: UIButton = {
             let button = UIButton()
             button.setTitle("Knuckleball", for: .normal)
-            button.setTitleColor(.blue, for: .normal)
+            button.setTitleColor(homeColor(teamName: homeTeamName), for: .normal)
             button.backgroundColor = .white
             button.layer.borderWidth = 1
             button.layer.borderColor = UIColor.blue.cgColor
@@ -408,11 +500,18 @@ class CardLauncher: UIViewController {
     
     @objc func handleFastball(sender: UIButton) {
         print("Fastball...")
+        step += 1
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "step"), object: nil)
+        diamondView.image = bases(runner: runnersImage)
+        print("Steps: \(step)")
     
     }
     
     @objc func handleCurveBall(sender: UIButton) {
         print("CurveBall...")
+        countStep += 1
+        NotificationCenter.default.post(name: NSNotification.Name(rawValue: "countStep"), object: nil)
+        
         
     }
     
@@ -436,29 +535,95 @@ class CardLauncher: UIViewController {
         
     }
     
+    var flags: [Flags] = []
+    
     func inning(innings: [Inning], number: Int)  {
         for inning in innings {
             if inning.number == 0 {
                 for player in inning.halfs[0].events {
                     print("#\(player.lineup?.jersey_number) \(player.lineup?.first_name) \(player.lineup?.last_name)")
                 }
-            } else if inning.number == 1 {
-                if inning.halfs[0].events.count > 0 {
-                    self.hitter = inning.halfs[0].events[0].at_bat?.hitter
-                } else {
-                    self.hitter = nil
-                }
-                for at_bat in inning.halfs[0].events {
-                    guard let at_bat_events = at_bat.at_bat?.events else {return}
-                    for at_bat_event in  at_bat_events {
-                        guard let count = at_bat_event.count else {return}
-                        self.inningCount = inning.number
-                        self.counts.append(count)
-                    }
-                }
+            } else if inning.number == number {
+                topHalfEvents(inning: inning, number: inning.number)
+                atBats(topEvents: topEvents)
+                atBatEvents(atbats: atBats)
+                getAtBatEvent(atBatEvent: atBatEvent)
+                
+                
+
             }
+//            else if inning.number == number {
+//                if inning.halfs[0].events.count > 0 {
+//                    self.hitter = inning.halfs[0].events[0].at_bat?.hitter
+//                } else {
+//                    self.hitter = Hitter(preferred_name: "", first_name: "NO", last_name: "DATA", jersey_number: "0", id: "00000")
+//                }
+//                for at_bat in inning.halfs[0].events {
+//                    guard let at_bat_events = at_bat.at_bat?.events else {return}
+//                    for at_bat_event in  at_bat_events {
+//                        guard let count = at_bat_event.count else {return}
+//
+//                        self.counts.append(count)
+//
+//                    }
+//                }
+//            }
         }
     }
+    
+    func topHalfEvents(inning: Inning, number: Int) {
+        for event in inning.halfs[0].events {
+            self.topEvents.append(event)
+        }
+//        self.topEvents = inning.halfs.map {$0.events.map {$0.at_bat.}}
+    }
+    
+    func atBats(topEvents: [Event]) {
+        for event in topEvents {
+            guard let atbat = event.at_bat else {return}
+            self.atBats.append(atbat)
+        }
+    }
+    
+    func atBatEvents(atbats: [At_Bat] ){
+
+        self.atBatEvent = atBats.flatMap {$0.events}
+    
+    }
+    
+    func getAtBatEvent(atBatEvent: [At_Bat_Event]){
+        
+        
+        self.counts = atBatEvent.compactMap {$0.count}
+        self.flags = atBatEvent.compactMap {$0.flags}
+        
+        
+        
+        for event in atBatEvent {
+            guard let count = event.count else {return}
+            guard let flags = event.flags else {return}
+            
+            
+            
+            print("""
+                
+                Count \(self.counts.count): \(count)
+                flags \(self.flags.count): \(flags)
+                
+                
+                
+                
+                Balls \(self.counts.count): \(count.balls)
+                Strikes \(self.counts.count): \(count.strikes)
+                OUTs \(self.counts.count): \(count.outs)
+                Pitch Count \(self.counts.count): \(count.pitch_count)
+                
+                
+                """)
+        }
+    }
+    
+   
     
     func pitchCounter(pitchCount: Int){
         for count in counts {
@@ -466,6 +631,120 @@ class CardLauncher: UIViewController {
                 self.count = count
             }
         }
+    }
+    
+    
+    @objc func handleCount() {
+       
+        countStepper(count: counts, flags: flags, step: countStep)
+       
+    }
+    
+    func countStepper(count: [Count], flags: [Flags], step: Int) {
+        guard let number = atBatEvent[countStep].hitter?.jersey_number else {return}
+        guard let firstName = atBatEvent[countStep].hitter?.first_name else {return}
+        guard let lastName = atBatEvent[countStep].hitter?.last_name else {return }
+        
+        self.hitterLabel.text = "#\(number) \(firstName) \(lastName)"
+        
+        print("""
+            
+            Count \(count.count): \(count)
+            
+            
+            
+            
+            Balls \(step - 1): \(count[step - 1].balls)
+            Strikes \(step - 1): \(count[step - 1].strikes)
+            OUTs \(step - 1): \(count[step - 1].outs)
+            Pitch Count \(step - 1): \(count[step - 1].pitch_count)
+            
+            
+            """)
+        if count[step - 1].outs == 0 {
+            outsView.image = outs(manyOuts: count[step - 1].outs)
+            if flags[step - 1].is_ab_over || flags[step - 1].is_hit {
+                countLabel.text = "\(0)-\(0)"
+                self.hitterLabel.text = "#\(number) \(firstName) \(lastName)"
+                
+            } else {
+                countLabel.text = "\(count[step - 1].balls)-\(count[step - 1].strikes)"
+            }
+            
+        } else if count[step - 1].outs == 1 {
+            outsView.image = outs(manyOuts: count[step - 1].outs)
+            if flags[step - 1].is_ab_over || flags[step - 1].is_hit {
+                countLabel.text = "\(0)-\(0)"
+            } else {
+                countLabel.text = "\(count[step - 1].balls)-\(count[step - 1].strikes)"
+            }
+            
+        } else if count[step - 1].outs == 2 {
+            outsView.image = outs(manyOuts: count[step - 1].outs)
+            if flags[step - 1].is_ab_over || flags[step - 1].is_hit {
+                countLabel.text = "\(0)-\(0)"
+            } else {
+                countLabel.text = "\(count[step - 1].balls)-\(count[step - 1].strikes)"
+            }
+        } else if count[step - 1].outs == 3 {
+            outsView.image = outs(manyOuts: count[step - 1].outs)
+            if flags[step - 1].is_ab_over || flags[step - 1].is_hit {
+                countLabel.text = "\(0)-\(0)"
+            } else {
+                countLabel.text = "\(count[step - 1].balls)-\(count[step - 1].strikes)"
+            }
+            self.counts = []
+            self.flags = []
+            print("""
+                
+                Second Inning:
+                
+                Count \(count.count): \(count)
+                
+                
+                
+                Balls \(step - 1): \(count[step - 1].balls)
+                Strikes \(step - 1): \(count[step - 1].strikes)
+                OUTs \(step - 1): \(count[step - 1].outs)
+                Pitch Count \(step - 1): \(count[step - 1].pitch_count)
+                
+                
+                """)
+            countStep = 0
+            inningCount += 1
+            inningLabel.text = "\u{25B3} \(inningCount)"
+            inning(innings: innings, number: inningCount)
+        }
+        
+        
+    }
+    
+    var isOut = false
+    
+    @objc func handleResetCount() {
+        isOut.toggle()
+        self.countLabel.text = "\(0)-\(0)"
+    }
+    
+    func manOnBases() {
+        
+        for event in atBatEvent {
+            if (event.runners != nil) {
+                for runner in event.runners! {
+                    
+                    onBase.append(runner)
+                    
+                }
+            }
+        }
+        
+        
+        print("""
+            
+            ON BASE \(onBase.count): \(onBase)
+            
+            """)
+        
     }
     
     
