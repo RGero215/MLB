@@ -88,33 +88,45 @@ class CardLauncher: UIViewController {
         pitchCounter(pitchCount: 1)
         manOnBases()
         
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        appDelegate.statusBarBackgroundView.backgroundColor = .black
+        print("""
+            
+            
+            
+            Home Team: \(homeAbbr) \(homeRuns)
+            
+            
+            
+            """)
         
-//        guard let keyWindow = UIApplication.shared.keyWindow else {return}
-//        keyWindow.window.
-//        let view = UIView(frame: keyWindow.frame)
-        
-        view.backgroundColor = UIColor.white
-//        view.frame = CGRect(x: keyWindow.frame.width - 10, y: keyWindow.frame.height - 10, width: 10, height: 10)
+        view.backgroundColor = UIColor.black
         
         // status bar
-        let statusBarBackgroundView = UIView()
-        statusBarBackgroundView.backgroundColor = UIColor.black
+//        let statusBarBackgroundView = UIView()
+//        statusBarBackgroundView.backgroundColor = UIColor.black
+//        statusBarBackgroundView.translatesAutoresizingMaskIntoConstraints = false
+//
+//        view.addSubview(statusBarBackgroundView)
+//        statusBarBackgroundView.topAnchor.constraint(equalTo: view.topAnchor, constant: 0).isActive = true
+//        statusBarBackgroundView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0).isActive = true
+//        statusBarBackgroundView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0).isActive = true
         
-        view.addSubview(statusBarBackgroundView)
-        view.addConstraintsWithFormat(format: "H:|[v0]|", views: statusBarBackgroundView)
-        view.addConstraintsWithFormat(format: "V:|[v0(40)]", views: statusBarBackgroundView)
+//        view.addConstraintsWithFormat(format: "H:|[v0]|", views: statusBarBackgroundView)
+//        view.addConstraintsWithFormat(format: "V:|[v0(40)]", views: statusBarBackgroundView)
         
         // scoreboard view
         let scoreboardFrame = CGRect(x: 0, y: 0, width: view.frame.width, height: 100)
         let scoreboardView = ScoreboardView(frame: scoreboardFrame)
+        scoreboardView.translatesAutoresizingMaskIntoConstraints = false
         
         // set Scoreboard View
         setUpScoreboard(scoreboardView: scoreboardView)
         view.addSubview(scoreboardView)
-        view.addConstraintsWithFormat(format: "H:|[v0]|", views: scoreboardView)
-        view.addConstraintsWithFormat(format: "V:|[v0]-0-[v1(100)]", views: statusBarBackgroundView, scoreboardView)
+        scoreboardView.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 0).isActive = true
+        scoreboardView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0).isActive = true
+        scoreboardView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0).isActive = true
+        
+//        view.addConstraintsWithFormat(format: "H:|[v0]|", views: scoreboardView)
+//        view.addConstraintsWithFormat(format: "V:|[v0]-0-[v1(100)]", views: statusBarBackgroundView, scoreboardView)
         
         // Notify dismiss
         
@@ -149,6 +161,7 @@ class CardLauncher: UIViewController {
             self.outsView.image = UIImage(named: "no_out")
             self.countLabel.text = "\(0)-\(0)"
             self.awayLabel.text = "\(self.awayAbbr): \(self.awayRuns)"
+            self.homeLabel.text = "\(self.homeAbbr): \(self.homeRuns)"
             self.inningLabel.text = "\u{25B3} \(self.inningCount)"
             self.atBatEvent = []
             self.atBats = []
@@ -188,6 +201,17 @@ class CardLauncher: UIViewController {
         return label
     }()
     
+    lazy var homeLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "\(homeAbbr): \(homeRuns)"
+        label.textColor = .white
+        label.backgroundColor = homeColor(teamName: homeTeamName)
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.textAlignment = .center
+        return label
+    }()
+    
     lazy var countLabel: UILabel = {
         let label = UILabel()
         label.translatesAutoresizingMaskIntoConstraints = false
@@ -204,6 +228,7 @@ class CardLauncher: UIViewController {
         imageView.image = UIImage(named: "no_outs")
         imageView.contentMode = .scaleAspectFit
         imageView.clipsToBounds = true
+
         return imageView
     }()
     
@@ -217,9 +242,50 @@ class CardLauncher: UIViewController {
         return label
     }()
     
+    lazy var inningTitleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Inning"
+        label.textColor = .white
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    lazy var countTitleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Count"
+        label.textColor = .white
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    
+    
+    lazy var outsTitleLabel: UILabel = {
+        let label = UILabel()
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.text = "Outs"
+        label.textColor = .white
+        label.font = UIFont.boldSystemFont(ofSize: 20)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    lazy var scoreboardStackView = UIStackView()
+    lazy var teamsStackView = UIStackView()
+    lazy var inningStackView = UIStackView()
+    lazy var outStackView = UIStackView()
+    lazy var countStackView = UIStackView()
+    lazy var runnerStackView = UIStackView()
+    
     func setUpScoreboard(scoreboardView: UIView){
         awayLabel.text = "\(awayAbbr): \(awayRuns)"
         awayLabel.backgroundColor = awayColor(teamName: awayTeamName)
+        homeLabel.text = "\(homeAbbr): \(homeRuns)"
+        homeLabel.backgroundColor = homeColor(teamName: homeTeamName)
         print("""
             
             
@@ -250,91 +316,80 @@ class CardLauncher: UIViewController {
         
         hitterLabel.backgroundColor = awayColor(teamName: awayTeamName)
         
-        let homeLabel: UILabel = {
-            let label = UILabel()
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.text = "\(homeAbbr): \(homeRuns)"
-            label.textColor = .white
-            label.backgroundColor = homeColor(teamName: homeTeamName)
-            label.font = UIFont.boldSystemFont(ofSize: 20)
-            label.textAlignment = .center
-            return label
-        }()
         
+        scoreboardStackView = UIStackView(arrangedSubviews: [teamsStackView, inningStackView, outStackView, countStackView, runnerStackView])
+        scoreboardView.addSubview(scoreboardStackView)
+        scoreboardStackView.axis = .horizontal
+        scoreboardStackView.spacing = 0
+        scoreboardStackView.distribution = .fillEqually
+        scoreboardStackView.topAnchor.constraint(equalTo: scoreboardView.topAnchor, constant: 0).isActive = true
+        scoreboardStackView.leadingAnchor.constraint(equalTo: scoreboardView.leadingAnchor, constant: 0).isActive = true
+        scoreboardStackView.trailingAnchor.constraint(equalTo: scoreboardView.trailingAnchor, constant: -20).isActive = true
+        scoreboardStackView.bottomAnchor.constraint(equalTo: scoreboardView.bottomAnchor, constant: 0).isActive = true
+        scoreboardStackView.translatesAutoresizingMaskIntoConstraints = false
         
+        teamsStackView = UIStackView(arrangedSubviews: [awayLabel, homeLabel])
+        scoreboardStackView.addSubview(teamsStackView)
+        teamsStackView.axis = .vertical
+        teamsStackView.spacing = 0
+        teamsStackView.distribution = .fillEqually
+        teamsStackView.topAnchor.constraint(equalTo: scoreboardStackView.topAnchor, constant: 0).isActive = true
+        teamsStackView.leadingAnchor.constraint(equalTo: scoreboardStackView.leadingAnchor, constant: 0).isActive = true
+        teamsStackView.bottomAnchor.constraint(equalTo: scoreboardStackView.bottomAnchor, constant: 0).isActive = true
+        teamsStackView.translatesAutoresizingMaskIntoConstraints = false
+        teamsStackView.widthAnchor.constraint(equalToConstant: CGFloat(80)).isActive = true
         
-        let inningTitleLabel: UILabel = {
-            let label = UILabel()
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.text = "Inning"
-            label.textColor = .white
-            label.font = UIFont.boldSystemFont(ofSize: 20)
-            label.textAlignment = .center
-            return label
-        }()
+        inningStackView = UIStackView(arrangedSubviews: [inningTitleLabel, inningLabel])
+        scoreboardStackView.addSubview(inningStackView)
+        inningStackView.axis = .vertical
+        inningStackView.spacing = 0
+        inningStackView.distribution = .fillEqually
+        inningStackView.topAnchor.constraint(equalTo: scoreboardStackView.topAnchor, constant: 0).isActive = true
+        inningStackView.leadingAnchor.constraint(equalTo: teamsStackView.trailingAnchor, constant: 5).isActive = true
+        inningStackView.bottomAnchor.constraint(equalTo: scoreboardStackView.bottomAnchor, constant: 0).isActive = true
+        inningStackView.translatesAutoresizingMaskIntoConstraints = false
+        inningStackView.widthAnchor.constraint(equalToConstant: CGFloat(60)).isActive = true
+
+        outStackView = UIStackView(arrangedSubviews: [outsTitleLabel, outsView])
+        scoreboardStackView.addSubview(outStackView)
+        outStackView.axis = .vertical
+        outStackView.spacing = 0
+        outStackView.distribution = .fillEqually
+        outStackView.topAnchor.constraint(equalTo: scoreboardStackView.topAnchor, constant: 0).isActive = true
+        outStackView.leadingAnchor.constraint(equalTo: inningStackView.trailingAnchor, constant: 5).isActive = true
+        outStackView.bottomAnchor.constraint(equalTo: scoreboardStackView.bottomAnchor, constant: 0).isActive = true
+        outStackView.translatesAutoresizingMaskIntoConstraints = false
+        outsView.heightAnchor.constraint(equalToConstant: CGFloat(20)).isActive = true
+        outsView.widthAnchor.constraint(equalToConstant: CGFloat(20)).isActive = true
+        outStackView.widthAnchor.constraint(equalToConstant: CGFloat(60)).isActive = true
         
+        countStackView = UIStackView(arrangedSubviews: [countTitleLabel, countLabel])
+        scoreboardStackView.addSubview(countStackView)
+        countStackView.axis = .vertical
+        countStackView.spacing = 0
+        countStackView.distribution = .fillEqually
+        countStackView.topAnchor.constraint(equalTo: scoreboardStackView.topAnchor, constant: 0).isActive = true
+        countStackView.leadingAnchor.constraint(equalTo: outStackView.trailingAnchor, constant: 5).isActive = true
+        countStackView.bottomAnchor.constraint(equalTo: scoreboardStackView.bottomAnchor, constant: 0).isActive = true
+        countStackView.translatesAutoresizingMaskIntoConstraints = false
+        countStackView.widthAnchor.constraint(equalToConstant: CGFloat(60)).isActive = true
+//
+        runnerStackView = UIStackView(arrangedSubviews: [diamondView])
+        scoreboardStackView.addSubview(runnerStackView)
+        runnerStackView.axis = .vertical
+        runnerStackView.spacing = 0
+        runnerStackView.distribution = .fillEqually
+        runnerStackView.topAnchor.constraint(equalTo: scoreboardStackView.topAnchor, constant: 0).isActive = true
+        runnerStackView.leadingAnchor.constraint(equalTo: countStackView.trailingAnchor, constant: 0).isActive = true
+        runnerStackView.bottomAnchor.constraint(equalTo: scoreboardStackView.bottomAnchor, constant: 0).isActive = true
+        runnerStackView.trailingAnchor.constraint(equalTo: scoreboardStackView.trailingAnchor, constant: 0).isActive = true
         
+        runnerStackView.translatesAutoresizingMaskIntoConstraints = false
+        runnerStackView.widthAnchor.constraint(equalToConstant: CGFloat(80)).isActive = true
         
-        let countTitleLabel: UILabel = {
-            let label = UILabel()
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.text = "Count"
-            label.textColor = .white
-            label.font = UIFont.boldSystemFont(ofSize: 20)
-            label.textAlignment = .center
-            return label
-        }()
-        
-        
-        
-        let outsTitleLabel: UILabel = {
-            let label = UILabel()
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.text = "Outs"
-            label.textColor = .white
-            label.font = UIFont.boldSystemFont(ofSize: 20)
-            label.textAlignment = .center
-            return label
-        }()
-        
-        
-        
-        scoreboardView.addSubview(awayLabel)
-        scoreboardView.addConstraintsWithFormat(format: "H:|[v0(100)]", views: awayLabel)
-        scoreboardView.addConstraintsWithFormat(format: "V:|[v0(50)]", views: awayLabel)
-        
-        scoreboardView.addSubview(homeLabel)
-        scoreboardView.addConstraintsWithFormat(format: "H:|[v0(100)]", views: homeLabel)
-        scoreboardView.addConstraintsWithFormat(format: "V:|[v0]-0-[v1]|", views: awayLabel, homeLabel)
-        scoreboardView.addConstraintsWithFormat(format: "V:|[v0(50)]", views: awayLabel)
-        
-        scoreboardView.addSubview(inningTitleLabel)
-        scoreboardView.addConstraintsWithFormat(format: "H:|[v0]-0-[v1(75)]", views: awayLabel, inningTitleLabel)
-        scoreboardView.addConstraintsWithFormat(format: "V:|[v0(50)]", views: inningTitleLabel)
-        
-        scoreboardView.addSubview(inningLabel)
-        scoreboardView.addConstraintsWithFormat(format: "H:|[v0]-0-[v1(75)]", views: homeLabel, inningLabel)
-        scoreboardView.addConstraintsWithFormat(format: "V:|[v0]-0-[v1]|", views: inningTitleLabel, inningLabel)
-        
-        scoreboardView.addSubview(outsTitleLabel)
-        scoreboardView.addConstraintsWithFormat(format: "H:[v0]-0-[v1(75)]", views: inningTitleLabel, outsTitleLabel)
-        scoreboardView.addConstraintsWithFormat(format: "V:|[v0(50)]", views: outsTitleLabel)
-        
-        scoreboardView.addSubview(outsView)
-        scoreboardView.addConstraintsWithFormat(format: "H:[v0]-0-[v1(75)]", views: inningLabel, outsView)
-        scoreboardView.addConstraintsWithFormat(format: "V:|[v0]-0-[v1]|", views: outsTitleLabel, outsView)
-        
-        scoreboardView.addSubview(countTitleLabel)
-        scoreboardView.addConstraintsWithFormat(format: "H:[v0]-0-[v1(75)]", views: outsTitleLabel, countTitleLabel)
-        scoreboardView.addConstraintsWithFormat(format: "V:|[v0(50)]", views: countTitleLabel)
-        
-        scoreboardView.addSubview(countLabel)
-        scoreboardView.addConstraintsWithFormat(format: "H:[v0]-0-[v1(75)]", views: outsView, countLabel)
-        scoreboardView.addConstraintsWithFormat(format: "V:|[v0]-0-[v1]|", views: countTitleLabel, countLabel)
-        
-        scoreboardView.addSubview(diamondView)
-        scoreboardView.addConstraintsWithFormat(format: "H:[v0]-0-[v1(75)]|", views: outsView, diamondView)
-        scoreboardView.addConstraintsWithFormat(format: "V:|[v0]|", views: diamondView)
+        diamondView.heightAnchor.constraint(equalToConstant: CGFloat(50)).isActive = true
+        diamondView.widthAnchor.constraint(equalToConstant: CGFloat(50)).isActive = true
+
         
     }
     
@@ -345,12 +400,14 @@ class CardLauncher: UIViewController {
         label.backgroundColor = awayColor(teamName: awayTeamName)
         label.font = UIFont.boldSystemFont(ofSize: 20)
         label.textAlignment = .center
-        if let number = atBatEvent[countStep].hitter?.jersey_number, let firstName = atBatEvent[countStep].hitter?.first_name, let lastName = atBatEvent[countStep].hitter?.last_name {
-            label.text = "#\(number) \(firstName) \(lastName)"
-        } else {
-            guard let firstName = atBatEvent[countStep].hitter?.first_name else  {return label}
-            guard let lastName = atBatEvent[countStep].hitter?.last_name else {return label}
-            label.text = "\(firstName) \(lastName)"
+        if self.atBatEvent.count > 0 {
+            if let number = atBatEvent[countStep].hitter?.jersey_number, let firstName = atBatEvent[countStep].hitter?.first_name, let lastName = atBatEvent[countStep].hitter?.last_name {
+                label.text = "#\(number) \(firstName) \(lastName)"
+            } else {
+                guard let firstName = atBatEvent[countStep].hitter?.first_name else  {return label}
+                guard let lastName = atBatEvent[countStep].hitter?.last_name else {return label}
+                label.text = "\(firstName) \(lastName)"
+            }
         }
         return label
     }()
@@ -366,20 +423,36 @@ class CardLauncher: UIViewController {
         return label
     }()
     
+    var hitterStackView = UIStackView()
+    
     func setUpHitter(scoreboardView: UIView, view: UIView) {
         
+        hitterStackView = UIStackView(arrangedSubviews: [hittingPositionLabel, hitterLabel])
+        view.addSubview(hitterStackView)
+        hitterStackView.axis = .horizontal
+        hitterStackView.spacing = 0
+        hitterStackView.distribution = .fillProportionally
         
-        scoreboardView.addSubview(hittingPositionLabel)
-        scoreboardView.addConstraintsWithFormat(format: "V:[v0]-0-[v1(50)]", views: scoreboardView, hittingPositionLabel)
-        
-        scoreboardView.addSubview(hitterLabel)
-        scoreboardView.addConstraintsWithFormat(format: "H:|[v0(50)]-0-[v1]|", views: hittingPositionLabel, hitterLabel)
-        scoreboardView.addConstraintsWithFormat(format: "V:[v0]-0-[v1(50)]", views: scoreboardView, hitterLabel)
+        hitterStackView.topAnchor.constraint(equalTo: scoreboardView.bottomAnchor, constant: 0).isActive = true
+        hitterStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0).isActive = true
+        hitterStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0).isActive = true
+        hitterStackView.translatesAutoresizingMaskIntoConstraints = false
+
         
         setupStadium(view: view, hitterLabel: hitterLabel)
         
 
     }
+    
+    
+    
+    var locationStackView = UIStackView()
+    var insideStackView = UIStackView()
+    var middleStackView = UIStackView()
+    var outsideStackView = UIStackView()
+    var strikeZoneStackViewHigh = UIStackView()
+    var strikeZoneStackViewMiddle = UIStackView()
+    var strikeZoneStackViewLow = UIStackView()
     
     func setupStadium(view: UIView, hitterLabel: UILabel){
         let stadiumView: UIImageView = {
@@ -387,17 +460,288 @@ class CardLauncher: UIViewController {
             imageView.image = UIImage(named: "rising2dtop stadium")
             imageView.contentMode = .scaleAspectFill
             imageView.clipsToBounds = true
+            imageView.translatesAutoresizingMaskIntoConstraints = false
             return imageView
         }()
         
+        let thirteen: UIButton = {
+            let button = UIButton(type: .system)
+            button.setTitle("13", for: .normal)
+            button.setTitleColor(.black, for: .normal)
+            button.backgroundColor = .white
+            button.layer.borderWidth = 1
+            button.layer.borderColor = UIColor.black.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleThirteen), for: .touchUpInside)
+            
+            return button
+        }()
+        
+        let eleven: UIButton = {
+            let button = UIButton(type: .system)
+            button.setTitle("11", for: .normal)
+            button.setTitleColor(.black, for: .normal)
+            button.backgroundColor = .white
+            button.layer.borderWidth = 1
+            button.layer.borderColor = UIColor.black.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleEleven), for: .touchUpInside)
+            
+            return button
+        }()
+        
+        let ten: UIButton = {
+            let button = UIButton(type: .system)
+            button.setTitle("10", for: .normal)
+            button.setTitleColor(.black, for: .normal)
+            button.backgroundColor = .white
+            button.layer.borderWidth = 1
+            button.layer.borderColor = UIColor.black.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleTen), for: .touchUpInside)
+            
+            return button
+        }()
+        
+        let twelve: UIButton = {
+            let button = UIButton(type: .system)
+            button.setTitle("12", for: .normal)
+            button.setTitleColor(.black, for: .normal)
+            button.backgroundColor = .white
+            button.layer.borderWidth = 1
+            button.layer.borderColor = UIColor.black.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.translatesAutoresizingMaskIntoConstraints = false
+            button.addTarget(self, action: #selector(handleTwelve), for: .touchUpInside)
+            
+            return button
+        }()
+        
+        let one: UIButton = {
+            let button = UIButton(type: .system)
+            button.setTitle("1", for: .normal)
+            button.setTitleColor(.black, for: .normal)
+            button.backgroundColor = .lightGray
+            button.layer.borderWidth = 1
+            button.layer.borderColor = UIColor.black.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleOne), for: .touchUpInside)
+            
+            return button
+        }()
+        
+        let two: UIButton = {
+            let button = UIButton(type: .system)
+            button.setTitle("2", for: .normal)
+            button.setTitleColor(.black, for: .normal)
+            button.backgroundColor = .lightGray
+            button.layer.borderWidth = 1
+            button.layer.borderColor = UIColor.black.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleTwo), for: .touchUpInside)
+            
+            return button
+        }()
+        
+        let three: UIButton = {
+            let button = UIButton(type: .system)
+            button.setTitle("3", for: .normal)
+            button.setTitleColor(.black, for: .normal)
+            button.backgroundColor = .lightGray
+            button.layer.borderWidth = 1
+            button.layer.borderColor = UIColor.black.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleThree), for: .touchUpInside)
+            
+            return button
+        }()
+        
+        let four: UIButton = {
+            let button = UIButton(type: .system)
+            button.setTitle("4", for: .normal)
+            button.setTitleColor(.black, for: .normal)
+            button.backgroundColor = .lightGray
+            button.layer.borderWidth = 1
+            button.layer.borderColor = UIColor.black.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleFour), for: .touchUpInside)
+            
+            return button
+        }()
+        
+        let five: UIButton = {
+            let button = UIButton(type: .system)
+            button.setTitle("5", for: .normal)
+            button.setTitleColor(.black, for: .normal)
+            button.backgroundColor = .lightGray
+            button.layer.borderWidth = 1
+            button.layer.borderColor = UIColor.black.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleFive), for: .touchUpInside)
+            
+            return button
+        }()
+        
+        let six: UIButton = {
+            let button = UIButton(type: .system)
+            button.setTitle("6", for: .normal)
+            button.setTitleColor(.black, for: .normal)
+            button.backgroundColor = .lightGray
+            button.layer.borderWidth = 1
+            button.layer.borderColor = UIColor.black.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleSix), for: .touchUpInside)
+            
+            return button
+        }()
+        
+        let seven: UIButton = {
+            let button = UIButton(type: .system)
+            button.setTitle("7", for: .normal)
+            button.setTitleColor(.black, for: .normal)
+            button.backgroundColor = .lightGray
+            button.layer.borderWidth = 1
+            button.layer.borderColor = UIColor.black.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleSeven), for: .touchUpInside)
+            
+            return button
+        }()
+        
+        let eight: UIButton = {
+            let button = UIButton(type: .system)
+            button.setTitle("8", for: .normal)
+            button.setTitleColor(.black, for: .normal)
+            button.backgroundColor = .lightGray
+            button.layer.borderWidth = 1
+            button.layer.borderColor = UIColor.black.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleEigth), for: .touchUpInside)
+            
+            return button
+        }()
+        
+        let nine: UIButton = {
+            let button = UIButton(type: .system)
+            button.setTitle("9", for: .normal)
+            button.setTitleColor(.black, for: .normal)
+            button.backgroundColor = .lightGray
+            button.layer.borderWidth = 1
+            button.layer.borderColor = UIColor.black.cgColor
+            button.titleLabel?.font = .systemFont(ofSize: 20)
+            button.addTarget(self, action: #selector(handleNine), for: .touchUpInside)
+            
+            return button
+        }()
+        
         view.addSubview(stadiumView)
-        view.addConstraintsWithFormat(format: "H:|[v0]|", views: stadiumView)
-        view.addConstraintsWithFormat(format: "V:[v0]-0-[v1(400)]", views: hitterLabel, stadiumView)
+        stadiumView.topAnchor.constraint(equalTo: hitterLabel.bottomAnchor, constant: 0).isActive = true
+        stadiumView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 0).isActive = true
+        stadiumView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: 0).isActive = true
+        stadiumView.heightAnchor.constraint(equalToConstant: self.view.frame.height / 2 + 100).isActive = true
+        stadiumView.isUserInteractionEnabled = true
+        
+        locationStackView = UIStackView(arrangedSubviews: [insideStackView, middleStackView, outsideStackView])
+        locationStackView.translatesAutoresizingMaskIntoConstraints = false
+        stadiumView.addSubview(locationStackView)
+        stadiumView.addSubview(twelve)
+        
+        locationStackView.axis = .horizontal
+        locationStackView.distribution = .fillProportionally
+
+        locationStackView.centerXAnchor.constraint(equalTo: stadiumView.centerXAnchor, constant: -(view.frame.width / 2) / 2 + 105).isActive = true
+        locationStackView.centerYAnchor.constraint(equalTo: stadiumView.centerYAnchor, constant: (view.frame.height / 2) / 2 - 150).isActive = true
+
+        locationStackView.widthAnchor.constraint(equalToConstant: CGFloat(170)).isActive = true
+
+        locationStackView.heightAnchor.constraint(equalToConstant: CGFloat(200)).isActive = true
+
+        insideStackView = UIStackView(arrangedSubviews: [thirteen])
+        insideStackView.translatesAutoresizingMaskIntoConstraints = false
+        locationStackView.addSubview(insideStackView)
+        insideStackView.axis = .vertical
+        insideStackView.distribution = .fillEqually
+
+
+        insideStackView.topAnchor.constraint(equalTo: locationStackView.topAnchor, constant: 0).isActive = true
+        insideStackView.leadingAnchor.constraint(equalTo: locationStackView.leadingAnchor, constant: 0).isActive = true
+        insideStackView.bottomAnchor.constraint(equalTo: locationStackView.bottomAnchor, constant: 0).isActive = true
+        insideStackView.widthAnchor.constraint(equalToConstant: CGFloat(30)).isActive = true
+
+        middleStackView = UIStackView(arrangedSubviews: [ten, strikeZoneStackViewHigh, strikeZoneStackViewMiddle, strikeZoneStackViewLow, twelve])
+        middleStackView.translatesAutoresizingMaskIntoConstraints = false
+        locationStackView.addSubview(middleStackView)
+        middleStackView.axis = .vertical
+        middleStackView.distribution = .fillEqually
+
+        middleStackView.topAnchor.constraint(equalTo: locationStackView.topAnchor, constant: 0).isActive = true
+        middleStackView.leadingAnchor.constraint(equalTo: insideStackView.trailingAnchor, constant: 0).isActive = true
+        middleStackView.bottomAnchor.constraint(equalTo: locationStackView.bottomAnchor, constant: 0).isActive = true
+        middleStackView.widthAnchor.constraint(equalToConstant: CGFloat(100)).isActive = true
+
+        
+        outsideStackView = UIStackView(arrangedSubviews: [eleven])
+        outsideStackView.translatesAutoresizingMaskIntoConstraints = false
+        locationStackView.addSubview(outsideStackView)
+        outsideStackView.axis = .vertical
+        outsideStackView.distribution = .fillEqually
+        
+        outsideStackView.topAnchor.constraint(equalTo: locationStackView.topAnchor, constant: 0).isActive = true
+        outsideStackView.leadingAnchor.constraint(equalTo: middleStackView.trailingAnchor, constant: 0).isActive = true
+        outsideStackView.bottomAnchor.constraint(equalTo: locationStackView.bottomAnchor, constant: 0).isActive = true
+        outsideStackView.widthAnchor.constraint(equalToConstant: CGFloat(30)).isActive = true
+        outsideStackView.trailingAnchor.constraint(equalTo: locationStackView.trailingAnchor, constant: 0).isActive = true
+
+        strikeZoneStackViewHigh = UIStackView(arrangedSubviews: [one, two, three])
+        strikeZoneStackViewHigh.translatesAutoresizingMaskIntoConstraints = false
+        locationStackView.addSubview(strikeZoneStackViewHigh)
+        strikeZoneStackViewHigh.axis = .horizontal
+        strikeZoneStackViewHigh.distribution = .fillEqually
+
+        strikeZoneStackViewHigh.topAnchor.constraint(equalTo: ten.bottomAnchor, constant: 0).isActive = true
+        strikeZoneStackViewHigh.leadingAnchor.constraint(equalTo: insideStackView.trailingAnchor, constant: 0).isActive = true
+        strikeZoneStackViewHigh.trailingAnchor.constraint(equalTo: outsideStackView.leadingAnchor, constant: 0).isActive = true
+        strikeZoneStackViewHigh.heightAnchor.constraint(equalToConstant: CGFloat(40)).isActive = true
+
+        strikeZoneStackViewMiddle = UIStackView(arrangedSubviews: [four, five, six])
+        strikeZoneStackViewMiddle.translatesAutoresizingMaskIntoConstraints = false
+        locationStackView.addSubview(strikeZoneStackViewMiddle)
+        strikeZoneStackViewMiddle.axis = .horizontal
+        strikeZoneStackViewMiddle.distribution = .fillEqually
+
+        strikeZoneStackViewMiddle.topAnchor.constraint(equalTo: strikeZoneStackViewHigh.bottomAnchor, constant: 0).isActive = true
+        strikeZoneStackViewMiddle.leadingAnchor.constraint(equalTo: insideStackView.trailingAnchor, constant: 0).isActive = true
+        strikeZoneStackViewMiddle.trailingAnchor.constraint(equalTo: outsideStackView.leadingAnchor, constant: 0).isActive = true
+        strikeZoneStackViewMiddle.heightAnchor.constraint(equalToConstant: CGFloat(40)).isActive = true
+
+        strikeZoneStackViewLow = UIStackView(arrangedSubviews: [seven, eight, nine])
+        strikeZoneStackViewLow.translatesAutoresizingMaskIntoConstraints = false
+        locationStackView.addSubview(strikeZoneStackViewLow)
+        strikeZoneStackViewLow.axis = .horizontal
+        strikeZoneStackViewLow.distribution = .fillEqually
+
+        strikeZoneStackViewLow.topAnchor.constraint(equalTo: strikeZoneStackViewMiddle.bottomAnchor, constant: 0).isActive = true
+        strikeZoneStackViewLow.leadingAnchor.constraint(equalTo: insideStackView.trailingAnchor, constant: 0).isActive = true
+        strikeZoneStackViewLow.trailingAnchor.constraint(equalTo: outsideStackView.leadingAnchor, constant: 0).isActive = true
+        strikeZoneStackViewLow.heightAnchor.constraint(equalToConstant: CGFloat(40)).isActive = true
+        
+       
+
+
+        twelve.topAnchor.constraint(equalTo: strikeZoneStackViewLow.bottomAnchor, constant: 0).isActive = true
+        twelve.leadingAnchor.constraint(equalTo: insideStackView.trailingAnchor, constant: 0).isActive = true
+
+        twelve.bottomAnchor.constraint(equalTo: locationStackView.bottomAnchor, constant: 0).isActive = true
+
+        twelve.heightAnchor.constraint(equalToConstant: CGFloat(30)).isActive = true
+        ten.heightAnchor.constraint(equalToConstant: CGFloat(30)).isActive = true
+
         
         setupPitchesButtons(view: view, stadium: stadiumView)
     }
     
     
+    var pitchesStackView = UIStackView()
     
     func setupPitchesButtons(view: UIView, stadium: UIImageView){
         
@@ -417,10 +761,8 @@ class CardLauncher: UIViewController {
             button.setTitle("CurveBall", for: .normal)
             button.setTitleColor(homeColor(teamName: homeTeamName), for: .normal)
             button.backgroundColor = .white
-            button.layer.borderWidth = 1
             button.titleLabel?.font = .systemFont(ofSize: 20)
             button.addTarget(self, action: #selector(handleCurveBall), for: .touchUpInside)
-            button.layer.borderColor = UIColor.blue.cgColor
             
             return button
         }()
@@ -441,8 +783,6 @@ class CardLauncher: UIViewController {
             button.setTitle("Cutter", for: .normal)
             button.setTitleColor(homeColor(teamName: homeTeamName), for: .normal)
             button.backgroundColor = .white
-            button.layer.borderWidth = 1
-            button.layer.borderColor = UIColor.blue.cgColor
             button.titleLabel?.font = .systemFont(ofSize: 20)
             button.addTarget(self, action: #selector(handleCutter), for: .touchUpInside)
             
@@ -465,37 +805,25 @@ class CardLauncher: UIViewController {
             button.setTitle("Knuckleball", for: .normal)
             button.setTitleColor(homeColor(teamName: homeTeamName), for: .normal)
             button.backgroundColor = .white
-            button.layer.borderWidth = 1
-            button.layer.borderColor = UIColor.blue.cgColor
             button.titleLabel?.font = .systemFont(ofSize: 20)
             button.addTarget(self, action: #selector(handleKnuckleball), for: .touchUpInside)
             
             return button
         }()
         
-        view.addSubview(fastball)
-        view.addConstraintsWithFormat(format: "H:|[v0]|", views: fastball)
-        view.addConstraintsWithFormat(format: "V:[v0]-0-[v1(50)]", views: stadium, fastball)
+        pitchesStackView = UIStackView(arrangedSubviews: [fastball, curveBall, slider, cutter, changeUp, knuckleBall])
+        pitchesStackView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(pitchesStackView)
+        pitchesStackView.axis = .vertical
+        pitchesStackView.spacing = 0
+        pitchesStackView.distribution = .fillEqually
         
-        view.addSubview(curveBall)
-        view.addConstraintsWithFormat(format: "H:|[v0]|", views: curveBall)
-        view.addConstraintsWithFormat(format: "V:[v0]-0-[v1(50)]", views: fastball, curveBall)
+        pitchesStackView.topAnchor.constraint(equalTo: stadium.bottomAnchor, constant: 0).isActive = true
+        pitchesStackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 0).isActive = true
+        pitchesStackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: 0).isActive = true
+        pitchesStackView.bottomAnchor.constraint(equalTo: view.safeAreaLayoutGuide.bottomAnchor, constant: 0).isActive = true
         
-        view.addSubview(slider)
-        view.addConstraintsWithFormat(format: "H:|[v0]|", views: slider)
-        view.addConstraintsWithFormat(format: "V:[v0]-0-[v1(50)]", views: curveBall, slider)
-        
-        view.addSubview(cutter)
-        view.addConstraintsWithFormat(format: "H:|[v0]|", views: cutter)
-        view.addConstraintsWithFormat(format: "V:[v0]-0-[v1(50)]", views: slider, cutter)
-        
-        view.addSubview(changeUp)
-        view.addConstraintsWithFormat(format: "H:|[v0]|", views: changeUp)
-        view.addConstraintsWithFormat(format: "V:[v0]-0-[v1(50)]", views: cutter, changeUp)
-        
-        view.addSubview(knuckleBall)
-        view.addConstraintsWithFormat(format: "H:|[v0]|", views: knuckleBall)
-        view.addConstraintsWithFormat(format: "V:[v0]-0-[v1(50)]", views: changeUp, knuckleBall)
+
     }
     
     @objc func handleFastball(sender: UIButton) {
@@ -533,6 +861,58 @@ class CardLauncher: UIViewController {
     @objc func handleKnuckleball(sender: UIButton) {
         print("Knuckleball...")
         
+    }
+    
+    @objc func handleOne(sender: UIButton) {
+        print("One")
+    }
+    
+    @objc func handleTwo(sender: UIButton) {
+        print("Two")
+    }
+    
+    @objc func handleThree(sender: UIButton) {
+        print("Three")
+    }
+    
+    @objc func handleFour(sender: UIButton) {
+        print("Four")
+    }
+    
+    @objc func handleFive(sender: UIButton) {
+        print("Five")
+    }
+    
+    @objc func handleSix(sender: UIButton) {
+        print("Six")
+    }
+    
+    @objc func handleSeven(sender: UIButton) {
+        print("Seven")
+    }
+    
+    @objc func handleEigth(sender: UIButton) {
+        print("Eigth")
+    }
+    
+    @objc func handleNine(sender: UIButton) {
+        print("Nine")
+    }
+    
+    @objc func handleTen(sender: UIButton) {
+        print("Ten")
+    }
+    
+    @objc func handleEleven(sender: UIButton) {
+        print("Eleven")
+    }
+    
+    @objc func handleTwelve(sender: UIButton) {
+        print("Twelve")
+    }
+    
+    @objc func handleThirteen(sender: UIButton) {
+        print("Thirteen")
     }
     
     var flags: [Flags] = []

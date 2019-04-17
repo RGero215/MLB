@@ -23,7 +23,7 @@ class MLBApiServiceGames {
         self.year = year
         self.month = month
         self.day = day
-        self.sourcesEndpoint = "/mlb/trial/v6.5/en/games/\(self.year)/\(self.month)/\(self.day)/boxscore.json?api_key=7jgd82yes4tvj35yrk6j2vff"
+        self.sourcesEndpoint = "/mlb/trial/v6.5/en/games/\(self.year)/\(self.month)/\(self.day)/boxscore.json?api_key=rvp6m6tpmmpaauqmm7v3pcfe"
     }
     
     
