@@ -96,8 +96,7 @@ class MLBApiServiceGame {
         }
     }
     
-    func returnSources() -> PitchByPitch
-    {
+    func returnSources() -> PitchByPitch {
         return self.sources!
     }
 }

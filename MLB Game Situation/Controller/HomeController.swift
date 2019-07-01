@@ -68,19 +68,19 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
     @objc func loadPlayByPlay(){
         print("loading.....")
        
-        self.pitchByPitch = self.game?.returnSources()
-        self.activityIndicatorView.stopAnimating()
+        let queue = DispatchQueue(label: "Pitch by Pitch")
+        queue.sync {
+            self.pitchByPitch = self.game?.returnSources()
+            self.activityIndicatorView.stopAnimating()
+        }
+    
+        loadPlays()
         
         if !cardLauncher.isBeingPresented {
             // Present your ViewController only if its not present to the user currently.
             self.present(self.cardLauncher, animated: true)
         }
-       
-        
-        
-        
 
-      
     }
     
     
@@ -160,15 +160,16 @@ class HomeController: UICollectionViewController, UICollectionViewDelegateFlowLa
         
         activityIndicatorView.startAnimating()
         
-//        startActivityIndicator()
-//        cardLauncher.showCard()
         guard let id = games[indexPath.row]["game"]?.id else {return}
         game = MLBApiServiceGame(id: id)
-        game?.fetchSources()
+
+        
+        self.game?.fetchSources()
+    
+        
         
         NotificationCenter.default.addObserver(self, selector: #selector(loadPlayByPlay), name: NSNotification.Name(rawValue: "playByPlay"), object: nil)
         
-    
     }
     
     @objc func loadPlays() {
